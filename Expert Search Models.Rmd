@@ -1,0 +1,196 @@
+---
+title: "Oliver Wyman Expert Search Models"
+author: "Aria Muchhal"
+date: '2023-04-16'
+output: pdf_document
+---
+
+## Set Up
+
+```{r echo=T, results='hide'}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	fig.align = "center",
+	message = FALSE,
+	warning = FALSE,
+	collapse = TRUE
+)
+```
+
+## Load Packages into R
+
+```{r echo=T, results='hide'}
+library(knitr)
+library(tinytex)
+library(latexpdf)
+library(magrittr)
+library(readxl)
+library(writexl)
+library(tidyr)
+library(purrr)
+library(lmtest)
+library(sandwich)
+library(fixest)
+library(modelsummary)
+library(lattice)
+library(AER)
+library(cellranger)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+```
+
+## Expert Search Models
+
+```{r echo=T, results='hide'}
+A=1.5
+B=2
+C=0
+D=1
+E=5
+F=.5
+G=8
+H=6
+I=1
+J=.5
+K=15
+DD=1
+ED=5
+FD=.1
+GD=6
+HD=4
+```
+
+## Add Functions
+
+```{r echo=T, results='hide'}
+teamsize<-function(a) {
+print(1-((1+C)/(1+A^(B-a))))
+}
+
+timelapse<-function(a){
+  print(2^(-a/K))
+}
+
+authors<-function(a){
+  print(1-(1-C)/(1+A^(B-(a))))
+}
+
+docnum<-function(a){
+  print(1-1/(a))
+}
+
+```
+
+## Now, import your dataframe into R: Import-\> From Excel\_ -\> Browse(find file) -\> sheet(whichever you'd like, but eventually import all), 
+
+## Skip=1, first row as names. 
+
+## Make sure to label different sheets differently.
+
+### It will be better for you to repeat all these steps with each dataframe. You could set up a for loop for this once you're sure you've copied everything down and your software is running properly for 1 iteration--this is a heavy process for your computer, so you don't want to overload it because of one misplaced parenthetical.
+
+```{r echo=T, results='hide'}
+library(readxl)
+Expert_Search_Models_1_ <- read_excel("C:/Users/muchh/OneDrive/Documents/R/Oliver Wyman/Expert Search Models (1).xlsx", 
+    sheet = "Person 1", skip = 1)
+Expert_Search_Models_2_ <- read_excel("C:/Users/muchh/OneDrive/Documents/R/Oliver Wyman/Expert Search Models (1).xlsx", 
+    sheet = "Person 2", skip = 1)
+Expert_Search_Models_3_ <- read_excel("C:/Users/muchh/OneDrive/Documents/R/Oliver Wyman/Expert Search Models (1).xlsx", 
+    sheet = "Person 3", skip = 1)
+Expert_Search_Models_4_ <- read_excel("C:/Users/muchh/OneDrive/Documents/R/Oliver Wyman/Expert Search Models (1).xlsx", 
+sheet = "Person 4", range = "A2:S12")
+```
+
+
+## Aggregate your dataframe
+
+```{r echo=T, results='hide'}
+Hours<-Expert_Search_Models_1_ %>% select(starts_with("Hours"))
+Teams<-Expert_Search_Models_1_ %>% select(ends_with("Size"))
+
+```
+
+## Run Calculations
+
+```{r echo=T, results='hide'}
+TeamSize1<-as.data.frame(apply(Teams,c(1, 2), FUN=teamsize))
+Timelapse1<-as.data.frame(timelapse(Expert_Search_Models_1_$TimeLapse))
+Authors1<-as.data.frame(authors(Expert_Search_Models_1_$Authors))
+DocsNum1<-as.data.frame(docnum(Expert_Search_Models_1_$Docs))
+
+ProjScore1 <- vector("numeric", length = ncol(TeamSize1))
+for(i in 1:ncol(TeamSize1)){
+  ProjScore1[i] <- as.data.frame(TeamSize1[ ,i]+Timelapse1)
+}
+ProjScore1<-as.data.frame(ProjScore1)
+DocScore1<-DocsNum1+Authors1+Timelapse1
+
+ExpertScore1 <- vector("numeric", length = 6)
+for(i in 1:6) {
+  ExpertScore1[i] <- as.data.frame(ProjScore1[[i]]+DocScore1)
+}
+ExpertScore1<-as.data.frame(ExpertScore1)
+
+```
+
+## Export your data
+```{r echo=T, results='hide'}
+write_xlsx(ProjScore1, "C:/Users/muchh/OneDrive/Documents/R/Oliver Wyman/ProjPerson_1_Final.xlsx")
+write_xlsx(DocScore1, "C:/Users/muchh/OneDrive/Documents/R/Oliver Wyman/DocPerson_1_Final.xlsx")
+write_xlsx(ExpertScore1, "C:/Users/muchh/OneDrive/Documents/R/Oliver Wyman/ExpertPerson_1_Final.xlsx")
+```
+
+## Repeat!
+```{r echo=T, results='hide'}
+Hours3<-Expert_Search_Models_3_ %>% select(starts_with("Hours"))
+Teams3<-Expert_Search_Models_3_ %>% select(ends_with("Size"))
+TeamSize3<-as.data.frame(apply(Teams3,c(1, 2), FUN=teamsize))
+Timelapse3<-as.data.frame(timelapse(Expert_Search_Models_3_$TimeLapse))
+Authors3<-as.data.frame(authors(Expert_Search_Models_3_$Authors))
+DocsNum3<-as.data.frame(docnum(Expert_Search_Models_3_$Docs))
+
+ProjScore3 <- vector("numeric", length = ncol(TeamSize3))
+for(i in 1:ncol(TeamSize3)){
+  ProjScore3[i] <- as.data.frame(TeamSize3[ ,i]+Timelapse3)
+}
+ProjScore3<-as.data.frame(ProjScore3)
+DocScore3<-DocsNum3+Authors3+Timelapse3
+
+ExpertScore3 <- vector("numeric", length = 6)
+for(i in 1:6) {
+  ExpertScore3[i] <- as.data.frame(ProjScore3[[i]]+DocScore3)
+}
+ExpertScore3<-as.data.frame(ExpertScore3)
+
+write_xlsx(ProjScore3, "C:/Users/muchh/OneDrive/Documents/R/Oliver Wyman/ProjPerson_3_Final.xlsx")
+write_xlsx(DocScore3, "C:/Users/muchh/OneDrive/Documents/R/Oliver Wyman/DocPerson_3_Final.xlsx")
+write_xlsx(ExpertScore3, "C:/Users/muchh/OneDrive/Documents/R/Oliver Wyman/ExpertPerson_3_Final.xlsx")
+```
+
+```{r echo=T, results='hide'}
+Hours4<-Expert_Search_Models_4_ %>% select(starts_with("Hours"))
+Teams4<-Expert_Search_Models_4_ %>% select(ends_with("Size"))
+TeamSize4<-as.data.frame(apply(Teams4,c(1, 2), FUN=teamsize))
+Timelapse4<-as.data.frame(timelapse(Expert_Search_Models_4_$TimeLapse))
+Authors4<-as.data.frame(authors(Expert_Search_Models_4_$Authors))
+DocsNum4<-as.data.frame(docnum(Expert_Search_Models_4_$Docs))
+
+ProjScore4 <- vector("numeric", length = ncol(TeamSize4))
+for(i in 1:ncol(TeamSize4)){
+  ProjScore4[i] <- as.data.frame(TeamSize4[ ,i]+Timelapse4)
+}
+ProjScore4<-as.data.frame(ProjScore4)
+DocScore4<-DocsNum4+Authors4+Timelapse4
+
+ExpertScore4 <- vector("numeric", length = 6)
+for(i in 1:6) {
+  ExpertScore4[i] <- as.data.frame(ProjScore4[[i]]+DocScore4)
+}
+ExpertScore4<-as.data.frame(ExpertScore4)
+
+write_xlsx(ProjScore4, "C:/Users/muchh/OneDrive/Documents/R/Oliver Wyman/ProjPerson_4_Final.xlsx")
+write_xlsx(DocScore4, "C:/Users/muchh/OneDrive/Documents/R/Oliver Wyman/DocPerson_4_Final.xlsx")
+write_xlsx(ExpertScore4, "C:/Users/muchh/OneDrive/Documents/R/Oliver Wyman/ExpertPerson_4_Final.xlsx")
+```
+
